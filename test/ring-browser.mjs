@@ -1,0 +1,36 @@
+// Explicit contract fixture transport; never use these screenshots as official Ring simulator/runtime evidence.
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { mkdir,writeFile } from 'node:fs/promises';
+import { createServer } from 'node:net';
+import sharp from 'sharp';
+import { Store } from '../server/store.mjs';
+import { RingSessions } from '../server/ring.mjs';
+import { createApp } from '../server/index.mjs';
+const probe=createServer();await new Promise(r=>probe.listen(0,'127.0.0.1',r));const port=probe.address().port;await new Promise(r=>probe.close(r));const base=`http://127.0.0.1:${port}`;
+const store=new Store(), user=store.register({name:'Contract verification',email:'ring-browser@example.test',password:'synthetic contract password only'});
+const image=await sharp({create:{width:800,height:600,channels:3,background:'#757f6b'}}).png().toBuffer();let noMedia=true;
+const ring=new RingSessions({fetcher:async(url)=>{
+ const path=new URL(url).pathname;
+ if(path==='/v1/devices')return Response.json({data:[{type:'devices',id:'browser-contract-device',attributes:{name:'Contract fixture — not official simulator'},relationships:{capabilities:{data:{type:'device-capabilities',id:'cap'}}}}],included:[{type:'device-capabilities',id:'cap',attributes:{video:{codecs:['AVC']}}}]});
+ if(path.endsWith('/media/image/download'))return noMedia?new Response(null,{status:416}):new Response(null,{status:303,headers:{location:'https://download-contract.amazonvision.com/contract-image'}});
+ if(path==='/contract-image')return new Response(image,{headers:{'content-type':'image/png','x-media-timestamp':String(Date.now()-1000),'x-media-origin':'snapshot','x-request-id':'contract-only-request'}});
+ throw new Error('Unexpected contract fixture request');
+}});
+const app=await createApp({store,ring,origin:base});await new Promise(r=>app.server.listen(port,'127.0.0.1',r));const browser=await chromium.launch({headless:true});const errors=[],results=[];const out='.impeccable/review';await mkdir(out,{recursive:true});
+const ctx=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});await ctx.addCookies([{name:'aperture_session',value:user.token,url:base,httpOnly:true,sameSite:'Strict'}]);const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
+const capture=async(name)=>{await page.screenshot({path:`${out}/ring-${name}.png`,fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);};
+try{
+ await page.goto(base);await page.getByRole('button',{name:'Ring source',exact:true}).click();await page.getByRole('heading',{name:'Connect a Playground token.'}).waitFor();await capture('disconnected-desktop');
+ await page.setViewportSize({width:390,height:844});await capture('disconnected-mobile');await page.setViewportSize({width:1440,height:1000});
+ await page.getByLabel('Short-lived Ring access token').fill('synthetic_browser_contract_token_only');await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Connect and discover devices'}).click();await page.getByRole('heading',{name:'Choose the source.'}).waitFor();
+ assert.equal(await page.getByLabel('Ring device').locator('option').count(),2);await page.getByLabel('Ring device').selectOption('browser-contract-device');await page.getByRole('button',{name:'Fetch reference image',exact:true}).click();await page.getByRole('alert').filter({hasText:'no recorded image'}).waitFor();results.push('Missing recorded media is actionable and leaves manual operation available.');
+ noMedia=false;await page.getByRole('button',{name:'Fetch reference image',exact:true}).click();await page.getByRole('button',{name:'Mark the approved area'}).waitFor();await capture('contract-reference-desktop');await page.getByRole('button',{name:'Mark the approved area'}).click();
+ await page.getByLabel('Reference name',{exact:true}).fill('Synthetic Ring contract reference');await page.getByLabel('The exact object').fill('the contract object');await page.getByLabel('The approved area',{exact:true}).fill('the contract area');await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Save private reference'}).click();await page.getByRole('heading',{name:'Your field of view.'}).waitFor();results.push('Official-API contract response imports a private reference with source metadata and owner-approved region.');
+ await page.getByRole('button',{name:'Shared passes',exact:true}).click();await page.getByRole('button',{name:'Create pass',exact:true}).click();await page.getByLabel('Private pass label').fill('Synthetic Ring review check');await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Create expiring pass'}).click();const passUrl=await page.getByLabel('Private bearer link').inputValue();
+ const recipient=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'}),rp=await recipient.newPage();rp.on('pageerror',e=>errors.push(e.message));await rp.goto(passUrl);await rp.getByRole('button',{name:'Request a check',exact:true}).click();await rp.getByRole('heading',{name:'Waiting for the owner’s view.'}).waitFor();
+ await page.getByRole('button',{name:'Requested checks',exact:false}).click();await page.getByRole('button',{name:'Fetch Ring snapshot',exact:true}).click();await page.getByText('Ring supplies the capture time.',{exact:false}).waitFor();assert.equal(await page.locator('input[type=datetime-local]').count(),0);await page.getByRole('radio',{name:/^Visible The reference/}).check();await page.getByRole('checkbox').check();await capture('contract-review-desktop');await page.setViewportSize({width:390,height:844});await capture('contract-review-mobile');await page.getByRole('button',{name:'Release approved answer'}).click();await rp.getByRole('heading',{name:'Visible.',exact:true}).waitFor();assert.equal(await rp.locator('img').count(),0);await rp.getByText('Ring image, reviewed by the owner',{exact:true}).waitFor();await rp.screenshot({path:`${out}/ring-contract-recipient-mobile.png`,fullPage:true});results.push('Human review locks Ring source time; recipient receives a finite outcome and timestamp with no image.');
+ await page.getByRole('button',{name:'Ring source',exact:true}).click();await page.getByRole('button',{name:'Disconnect',exact:true}).click();await page.getByRole('heading',{name:'Connect a Playground token.'}).waitFor();assert.equal(ring.frames.size,0);results.push('Disconnect clears the account token and temporary frames; the connection form remains usable on mobile.');
+ assert.deepEqual(errors,[]);results.push('No page errors or desktop/mobile overflow in the changed source workflow.');await recipient.close();
+ const result={passed:true,evidence:'Synthetic Ring API contract transport only; no real Ring device or official simulator was accessed.',results};await writeFile(`${out}/ring-browser-results.json`,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+}finally{await browser.close();await app.close();store.close();}
