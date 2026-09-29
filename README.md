@@ -4,6 +4,8 @@ A private workspace for giving someone a short-lived permission to ask one appro
 
 **Every answer is approved by the owner.** The optional Ring source adapter calls the official device and snapshot APIs when connected with an authorized Playground token. Without a token, uploaded references and manual observation remain available. Automated recognition is not implemented. Official Playground live video played inside the private owner workspace on 28 September 2026. Archived snapshot retrieval returned `MEDIA_NOT_FOUND` for those events. Browser-saved live frames have no Ring capture timestamp and can release only **Cannot verify**. No sample data is inserted on startup.
 
+[Watch the 109-second Ring demo](https://www.youtube.com/watch?v=WLnjM5z7IPQ). The video uses edited stills from the verified official Playground flow, with Deepgram Aura 2 Thalia narration and English captions. The demonstrated answer is **Cannot verify** because Ring capture time is unavailable. The final reviewed suite passes 38 tests. Read the [Ring integration friction log](docs/FRICTION-LOG.md) for observed errors and feature requests.
+
 ## Run locally
 
 Requires Node 22.13 or newer and npm.
@@ -102,7 +104,7 @@ It covers pending/completed reloads with a one-check budget, no cached answer be
 
 ## Automated recognition boundary
 
-The Ring adapter retrieves authorized images for human review. Automated recognition remains unimplemented; it would require a constrained model and evaluation of ambiguity and occlusion before use. Permission checks surround asynchronous image retrieval and final approval. The snapshot path still needs a verified image from a real Ring device or the official simulator. The live-frame reference and conservative recipient-review workflow was exercised end to end with the official Playground on 29 September. A final public demonstration video is still required.
+The Ring adapter retrieves authorized images for human review. Automated recognition remains unimplemented; it would require a constrained model and evaluation of ambiguity and occlusion before use. Permission checks surround asynchronous image retrieval and final approval. The snapshot path still needs a verified image from a real Ring device or the official simulator. The live-frame reference and conservative recipient-review workflow was exercised end to end with the official Playground on 29 September. The [public demonstration video](https://www.youtube.com/watch?v=WLnjM5z7IPQ) shows that conservative flow using edited browser stills.
 
 ## Interactive permission illustration
 
@@ -132,7 +134,7 @@ Reference requests begin at the current connection verification time (with a 24-
 
 The API checks the pass after the asynchronous download and again during final release. Disconnection cancels in-flight connection/image retention and invalidates temporary image access. Temporary preview images expire after five minutes; images used in a reference or completed private observation remain until the reference is deleted. The existing manual workflow remains usable.
 
-See [RING-DEMO.md](RING-DEMO.md) for the actual runtime path, primary documentation, recording plan and unresolved live-access gate. New automated provider tests use synthetic contract responses and are explicitly not official Ring simulator evidence:
+See [RING-DEMO.md](RING-DEMO.md) for the actual runtime path, public demonstration, primary documentation and unresolved archived-media verification. New automated provider tests use synthetic contract responses and are explicitly not official Ring simulator evidence:
 
 ```sh
 node --test test/ring.test.mjs

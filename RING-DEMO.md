@@ -1,6 +1,8 @@
-# Aperture Ring demonstration and evidence plan
+# Aperture Ring demonstration and evidence
 
 Status on 29 September 2026: the official Package Playground flow was verified end to end in Aperture, from Ring WHEP playback to a browser-saved private reference, a recipient request, owner review, a conservative answer and revocation. The live frame has no verified Ring capture timestamp, so the answer was **Cannot verify**. The archived image endpoint returned `MEDIA_NOT_FOUND` in the earlier tested simulation windows; a definite snapshot-backed answer remains verified only with synthetic contract fixtures.
+
+[Watch the public demonstration](https://www.youtube.com/watch?v=WLnjM5z7IPQ): 108.8 seconds of edited verified browser stills, with Deepgram Aura 2 Thalia narration and English captions. It shows the conservative live-frame workflow below; it is not a continuous recording or physical-device demonstration. The final reviewed suite passes 38 tests. The [friction log](docs/FRICTION-LOG.md) records the three observed integration issues and proposed improvements.
 
 ## Runtime path that is implemented
 
@@ -20,14 +22,14 @@ The image-download API retrieves existing recorded media; it does not start reco
 
 The remaining acceptance check for a definite snapshot-backed answer is: token → discovered device/module → official event or live view → downloaded image with `X-Media-Timestamp` and `X-Media-Origin`. Preserve the provider request ID privately. If that gate fails, record the returned status without its bearer token or signed URL. The verified live-frame fallback below must retain its explicit unknown-time and **Cannot verify** result.
 
-## Three-minute recording target
+## Original recording target
 
 - Show the official Ring Playground or authorized physical device, then Aperture discovering that same source.
 - Mark a narrowly scoped object and create its pass.
 - Show a real source image arriving through Aperture, human approval and the separate recipient’s finite answer.
 - Demonstrate an actual uncertain/stale case and a revoked pass. State that recognition is performed by the owner.
 
-This is a recording plan, not a completed video. Do not use the contract-fixture browser captures as official simulator evidence, show credentials or signed download URLs, imply automated recognition, or call the entry submission-ready until the live runtime and required video are verified.
+The completed walkthrough is linked above. Its source-time limit and edited-stills format are explicit. Contract-fixture captures are not official simulator evidence, and the video contains no credentials or signed download URLs. It does not imply automated recognition or a submitted Devpost entry.
 
 ## Observed friction and next validation
 
@@ -68,4 +70,4 @@ This is an honest fallback demonstration. It does not establish real-time object
 
 The recipient rendered **Cannot verify**, an unavailable Ring frame capture time and a separately labeled owner approval time. After the second request, revocation closed the recipient view. Evidence screenshots are saved privately as `aperture-ring-recipient-verified.png` and `aperture-ring-revocation-verified.png` in the coordinating task's outputs folder. The run used a recipient tab in the same browser, not an anonymous or separately authenticated browser session. Separate automated account-isolation tests cover unauthorized API access; this UI run does not replace those tests.
 
-The run established the official-simulator live-frame review and refusal path. It did not establish archived-media availability, current-world object visibility, automated recognition, physical Ring hardware behavior, a published demo video, hosted judge access or a submitted entry. The journal initially displayed an epoch date for its null source timestamp; the rendering now keeps source time unavailable, distinguishes live Ring review from manual observation, and labels approval time separately. That display repair does not change the released answer or stored timestamps.
+The run established the official-simulator live-frame review and refusal path. It did not establish archived-media availability, current-world object visibility, automated recognition, physical Ring hardware behavior, hosted judge access or a submitted entry. The public edited walkthrough was produced afterward and is linked above. The journal initially displayed an epoch date for its null source timestamp; the rendering now keeps source time unavailable, distinguishes live Ring review from manual observation, and labels approval time separately. That display repair does not change the released answer or stored timestamps.
