@@ -9,6 +9,6 @@ Aperture lets a person waiting for a parcel ask a bounded question about its app
 
 For the Ring path, use **Ring source** with your authorized official Playground token. Discovery, live view and private browser-frame capture were demonstrated in the [public Ring video](https://www.youtube.com/watch?v=WLnjM5z7IPQ). A browser-saved frame has no verified Ring capture time, so it releases **Cannot verify**. It cannot establish that the parcel is currently present or absent. Snapshot requests returned `MEDIA_NOT_FOUND` in that official run.
 
-The browser CI separately checks a timestamped snapshot contract using synthetic provider responses, plus recipient reload, retry and revocation. Those fixtures establish adapter behavior; they do not establish a working timestamped snapshot from the official simulator. See [the friction log](FRICTION-LOG.md).
+The browser CI separately checks a timestamped snapshot contract using synthetic provider responses, plus recipient reload, retry and revocation. Those fixtures establish adapter behavior; they do not establish a working timestamped snapshot from the official simulator. Use [the acceptance checklist](RING-ACCEPTANCE.md) for the remaining real-provider check, including the exact previously observed download host and provider error handling. See [the friction log](FRICTION-LOG.md).
 
 The privacy cutaway explains which information crosses the permission boundary. Physical device behavior and real parcel handoffs have not been tested. A not-visible answer does not prove theft or collection.
