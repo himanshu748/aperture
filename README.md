@@ -1,5 +1,7 @@
 # Aperture
 
+[Try the complete judge workflow](docs/JUDGE-GUIDE.md).
+
 A private workspace for giving someone a short-lived permission to ask one approved question about an object. The recipient receives a timestamped finite answer. They never receive the owner's reference photo or private observation evidence.
 
 **Every answer is approved by the owner.** The optional Ring source adapter calls the official device and snapshot APIs when connected with an authorized Playground token. Without a token, uploaded references and manual observation remain available. Automated recognition is not implemented. Official Playground live video played inside the private owner workspace on 28 September 2026. Archived snapshot retrieval returned `MEDIA_NOT_FOUND` for those events. Browser-saved live frames have no Ring capture timestamp and can release only **Cannot verify**. No sample data is inserted on startup.
