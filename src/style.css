@@ -390,6 +390,7 @@ button,
 .ring-provenance dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .ring-check-source { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
 .ring-check-source p { font-size: 13px; margin: 10px 0 16px; }
+.ring-check-source > .ring-live-view { margin-top: 24px; }
 .ring-check-source > .photo-region { margin-top: 22px; }
 @media (max-width: 720px) {
   .ring-source-layout { grid-template-columns: 1fr; }

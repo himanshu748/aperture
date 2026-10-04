@@ -868,7 +868,7 @@ function RecordCheck({
 }: {
   job: Job;
   camera: Camera;
-  onSave: () => void;
+  onSave: (message: string) => void;
 }) {
   const [result, setResult] = useState("cannot_verify"),
     [photo, setPhoto] = useState(""),
@@ -876,11 +876,29 @@ function RecordCheck({
     [error, setError] = useState("");
   const [ringFrame, setRingFrame] = useState<RingFrame | null>(null);
   const [fetchingRing, setFetchingRing] = useState(false);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    const timer = window.setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, []);
   const [observed, setObserved] = useState(() =>
     new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
       .toISOString()
       .slice(0, 19),
   );
+  const observedAt = ringFrame ? ringFrame.capturedAt : new Date(observed).getTime();
+  const sourceFresh = Number.isSafeInteger(observedAt) &&
+    (!ringFrame || ringFrame.sourceTimeVerified) &&
+    now - observedAt! <= 60000 && observedAt! >= job.created - 60000 && observedAt! <= now + 5000;
+  useEffect(() => { if (!sourceFresh) setResult("cannot_verify"); }, [sourceFresh]);
+  const timedOut = now - job.created >= 120000;
+  const releaseResult = sourceFresh ? result : "cannot_verify";
+  const secondsLeft = Math.max(0, Math.ceil((job.created + 120000 - now) / 1000));
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -888,7 +906,7 @@ function RecordCheck({
     const f = new FormData(e.currentTarget);
     try {
       const out = await api(`/checks/${job.id}/complete`, "POST", {
-        result,
+        result: releaseResult,
         ...(ringFrame ? { frameId: ringFrame.id } : { observedAt: new Date(observed).getTime(), image: photo || undefined }),
         note: f.get("note") || "",
         confirmed: f.get("confirmed") === "on",
@@ -897,7 +915,9 @@ function RecordCheck({
         setError(
           "The pass expired or was revoked. No observation was released.",
         );
-      else onSave();
+      else onSave(out.result === releaseResult
+        ? `Released “${out.result === "visible" ? "Visible" : out.result === "not_visible" ? "Not visible in the area" : "Cannot verify"}”. Permission and freshness were checked before release.`
+        : `Released “Cannot verify”. The observation was no longer fresh enough for a definite answer.`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -911,8 +931,7 @@ function RecordCheck({
           <span className="status pending">Owner observation requested</span>
           <h2>{job.question}</h2>
           <p>
-            {job.label} · Requested {ago(job.created)} · Times out after 2
-            minutes
+            {job.label} · Requested {ago(job.created)} · {timedOut ? "This check has timed out" : `${secondsLeft}s left to release`}
           </p>
         </div>
       </div>
@@ -963,15 +982,15 @@ function RecordCheck({
               ],
             ].map(([v, title, desc]) => (
               <label
-                className={`outcome ${result === v ? "chosen" : ""}`}
+                className={`outcome ${releaseResult === v ? "chosen" : ""}`}
                 key={v}
               >
                 <input
                   type="radio"
                   name="result"
                   value={v}
-                  checked={result === v}
-                  disabled={fetchingRing || (!!ringFrame && !ringFrame.sourceTimeVerified && v !== "cannot_verify")}
+                  checked={releaseResult === v}
+                  disabled={busy || timedOut || fetchingRing || (!sourceFresh && v !== "cannot_verify")}
                   onChange={() => setResult(v)}
                 />
                 <span>
@@ -1007,6 +1026,12 @@ function RecordCheck({
               Older than 60 seconds is released only as “Cannot verify.”
             </small>
           </label>}
+          <p className="form-note">
+            {timedOut ? "This request timed out. Ask the recipient to request another check." :
+              sourceFresh ? `This observation can support a definite answer for ${Math.max(0, Math.ceil((observedAt! + 60000 - now) / 1000))}s. The server checks freshness again when you release.` :
+              ringFrame && !ringFrame.sourceTimeVerified ? "Source time is unavailable. Only “Cannot verify” can be released." :
+              "This observation cannot support a definite answer. Fetch a fresh Ring image or make a new observation; otherwise release “Cannot verify”."}
+          </p>
           <label>
             Private note
             <textarea
@@ -1037,7 +1062,7 @@ function RecordCheck({
               {ringFrame ? "I reviewed this Ring image against the exact reference and approved area. This is my interpretation, not automated recognition." : "I checked the approved area and recorded the actual observation time. This is a human observation."}
             </span>
           </label>
-          <Button className="primary full" busy={busy} disabled={fetchingRing}>
+          <Button className="primary full" busy={busy} disabled={fetchingRing || timedOut}>
             Release approved answer <Icon name="arrow" />
           </Button>
         </section>
@@ -1508,11 +1533,7 @@ function Owner({ user, onLogout }: { user: User; onLogout: () => void }) {
                         key={job.id}
                         job={job}
                         camera={w.cameras.find((c) => c.id === job.camera_id)!}
-                        onSave={() =>
-                          void done(
-                            "Observation recorded. Permission was checked before release.",
-                          )
-                        }
+                        onSave={(message) => void done(message)}
                       />
                     )}
                   </>

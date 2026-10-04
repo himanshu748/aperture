@@ -141,8 +141,11 @@ See [RING-DEMO.md](RING-DEMO.md) for the actual runtime path, public demonstrati
 ```sh
 node --test test/ring.test.mjs
 node test/ring-browser.mjs
+APERTURE_REVIEW_RACE=1 node test/ring-browser.mjs
 node test/recipient-recovery.mjs
 ```
+
+The normal `ring-browser.mjs` invocation checks a fresh approved answer and writes `.impeccable/review/ring-browser-results.json`. The separate `APERTURE_REVIEW_RACE=1` invocation ages the observation on the server during release, verifies that the selected definite answer becomes “Cannot verify” for both owner and recipient, and writes `ring-browser-race-results.json` in the same directory. Run both against the existing production build to cover both paths; these invocations use disposable synthetic contract transport, not an official simulator or live Ring device.
 
 On September 12, 2026, the 22 domain/API tests passed (13 existing tests and 9 Ring contract tests), and all seven recipient recovery checks passed. A separate desktop/mobile browser batch passed connection, missing-media recovery, private reference import, Ring timestamp-locked human approval, recipient image exclusion and disconnect cleanup. Screenshots and results are under `.impeccable/review/ring-*`. All provider responses in these checks were synthetic contract fixtures, not an official simulator or live Ring device.
 
