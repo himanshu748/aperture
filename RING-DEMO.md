@@ -1,5 +1,7 @@
 # Aperture Ring demonstration and evidence
 
+Update on 11 October 2026: a separate local HTTP run completed official timestamped reference and check downloads, operator image review by Codex, a finite `visible` recipient response and revocation. It used the real app routes and Ring adapter without mocked provider responses. It was not a hosted/browser walkthrough or a new video; the September demonstration below remains the conservative live-frame recording.
+
 Status on 29 September 2026: the official Package Playground flow was verified end to end in Aperture, from Ring WHEP playback to a browser-saved private reference, a recipient request, owner review, a conservative answer and revocation. The live frame has no verified Ring capture timestamp, so the answer was **Cannot verify**. The archived image endpoint returned `MEDIA_NOT_FOUND` in the earlier tested simulation windows; a definite snapshot-backed answer remains verified only with synthetic contract fixtures.
 
 [Watch the public demonstration](https://www.youtube.com/watch?v=WLnjM5z7IPQ): 108.8 seconds of edited verified browser stills, with Deepgram Aura 2 Thalia narration and English captions. It shows the conservative live-frame workflow below; it is not a continuous recording or physical-device demonstration. The final reviewed suite passes 38 tests. The [friction log](docs/FRICTION-LOG.md) records the three observed integration issues and proposed improvements.
@@ -18,9 +20,9 @@ Status on 29 September 2026: the official Package Playground flow was verified e
 
 The official sample documents a 30-minute Playground token without app registration, OAuth configuration or client credentials. Ring’s May 28 release notes describe Package, Vehicle and Motion live-view simulations using WebRTC/WHEP. Use those controls only where the signed-in official Playground actually provides them.
 
-The image-download API retrieves existing recorded media; it does not start recording or create a fresh snapshot. Start an authorized live view or the relevant official simulated event before requesting media. If Ring returns 416, the UI explains that no recorded image is available. Whether the official simulator makes its frames available through this snapshot endpoint remains unverified; a documented live-view simulation is not evidence of snapshot availability.
+The image-download API retrieves existing recorded media; it does not start recording or create a fresh snapshot. Start an authorized live view or the relevant official simulated event before requesting media. If Ring returns 416, the UI explains that no recorded image is available. A separate official adapter check on 11 October successfully downloaded a fresh timestamped recording; this does not guarantee media availability for every simulated event. A documented live-view simulation alone is not evidence of snapshot availability.
 
-The remaining acceptance check for a definite snapshot-backed answer is: token → discovered device/module → official event or live view → downloaded image with `X-Media-Timestamp` and `X-Media-Origin`. Preserve the provider request ID privately. If that gate fails, record the returned status without its bearer token or signed URL. The verified live-frame fallback below must retain its explicit unknown-time and **Cannot verify** result.
+The provider and local HTTP portions passed on 11 October: token → discovered camera → official reference image → pass and recipient request → fresh official check image → operator image review by Codex → finite recipient answer → revocation. The remaining validation is a hosted/browser walkthrough of that snapshot-backed flow; no such walkthrough or new recording is claimed. Preserve the provider request ID privately. If that gate fails, record the returned status without its bearer token or signed URL. The verified live-frame fallback below must retain its explicit unknown-time and **Cannot verify** result.
 
 ## Original recording target
 
@@ -71,3 +73,21 @@ This is an honest fallback demonstration. It does not establish real-time object
 The recipient rendered **Cannot verify**, an unavailable Ring frame capture time and a separately labeled owner approval time. After the second request, revocation closed the recipient view. Evidence screenshots are saved privately as `aperture-ring-recipient-verified.png` and `aperture-ring-revocation-verified.png` in the coordinating task's outputs folder. The run used a recipient tab in the same browser, not an anonymous or separately authenticated browser session. Separate automated account-isolation tests cover unauthorized API access; this UI run does not replace those tests.
 
 The run established the official-simulator live-frame review and refusal path. It did not establish archived-media availability, current-world object visibility, automated recognition, physical Ring hardware behavior, hosted judge access or a submitted entry. The public edited walkthrough was produced afterward and is linked above. The journal initially displayed an epoch date for its null source timestamp; the rendering now keeps source time unavailable, distinguishes live Ring review from manual observation, and labels approval time separately. That display repair does not change the released answer or stored timestamps.
+
+## Official provider check — 11 October 2026
+
+[Sanitized provider receipt](docs/evidence/aperture-oct11-official-ring.json).
+
+A standalone harness called the repository's real `RingSessions.connect` and `RingSessions.snapshot` methods using native `fetch` and a fresh authorized official Playground token. It discovered one camera with no separate components (HTTP 200), received the image endpoint's HTTP 303 redirect, and downloaded an image (HTTP 200). The adapter decoded and normalized it, returning verified source time, `fresh: true`, recording origin, and capture time `2026-10-11T01:42:56.445Z`. The run began at `2026-10-11T01:42:19.776Z`; that start time is not the capture or download time.
+
+The exact observed media host was `download-eu-south-2.prod.phoenix.devices.amazon.dev`. The harness allowed that host and the previously observed AP host explicitly, without forwarding the Ring bearer to either. No bearer, signed URL or private image is included in this record. This closes the previously unverified official timestamped-download step for this run only. The harness did not create a reference or pass, approve an observation or release a recipient answer. Full snapshot-backed UI acceptance remains open. It provides no physical-device or actual parcel-visibility proof and does not change browser-frame abstention.
+
+## Full local HTTP provider flow — 11 October 2026
+
+[Sanitized local HTTP flow receipt](docs/evidence/aperture-oct11-official-flow.json).
+
+A second harness started a disposable in-memory Aperture workspace and called the real HTTP routes with native `fetch`. It used official Playground discovery and two successful recorded-image downloads: one for the saved reference, then one for a recipient check. Each image request returned 303 and each media download returned 200. Both images passed the adapter's verified-source-time and freshness checks with recording origin. Reference capture time was `2026-10-11T01:50:34.243Z`; observation capture time was `2026-10-11T01:51:13.361Z`.
+
+Codex visually inspected the private reference and observation images in the operator role before approving `visible`. This was an explicit review step outside the app's implementation, not automated object recognition by Aperture or a human-review claim. The recipient HTTP result had exactly six fields: `id`, `state`, `result`, `observedAt`, `completedAt`, and `provider`. It reported `visible` and `ring-snapshot-owner-review`; image data, camera identifiers and the owner note were excluded. Revocation changed the same recipient check to HTTP 410.
+
+The run completed at `2026-10-11T01:51:32.257Z`. It verifies the complete local HTTP flow against real official simulator responses. It does not verify hosted operation, browser interaction, physical hardware or a real parcel's current visibility. No new video was made; the public September video still demonstrates the unknown-time browser-frame refusal path.

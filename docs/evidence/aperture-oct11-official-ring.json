@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-11T01:42:19.776Z",
+  "provider": "official Ring Playground",
+  "requests": [
+    {
+      "operation": "discovery",
+      "status": 200
+    },
+    {
+      "operation": "image-request",
+      "status": 303
+    },
+    {
+      "operation": "media-download",
+      "status": 200
+    }
+  ],
+  "limits": [
+    "Adapter/provider check only; no recipient answer is released"
+  ],
+  "discovery": {
+    "connected": true,
+    "cameras": 1,
+    "components": 0
+  },
+  "downloadHost": "download-eu-south-2.prod.phoenix.devices.amazon.dev",
+  "snapshot": {
+    "ok": true,
+    "sourceTimeVerified": true,
+    "fresh": true,
+    "mediaOrigin": "recording",
+    "capturedAt": 1791682976445
+  }
+}

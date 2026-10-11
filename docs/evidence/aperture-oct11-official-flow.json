@@ -1,0 +1,57 @@
+{
+  "startedAt": "2026-10-11T01:49:57.111Z",
+  "provider": "Official Ring Playground",
+  "transport": "Real HTTP app routes and Ring adapter, no mocked fetch",
+  "requests": [
+    {
+      "operation": "discovery",
+      "status": 200
+    },
+    {
+      "operation": "image-request",
+      "status": 303
+    },
+    {
+      "operation": "media-download",
+      "status": 200
+    },
+    {
+      "operation": "image-request",
+      "status": 303
+    },
+    {
+      "operation": "media-download",
+      "status": 200
+    }
+  ],
+  "limits": [
+    "Disposable local app workspace; not a hosted/browser end-to-end claim",
+    "Operator image review by Codex; not automated object recognition"
+  ],
+  "reference": {
+    "sourceTimeVerified": true,
+    "fresh": true,
+    "mediaOrigin": "recording",
+    "capturedAt": 1791683434243
+  },
+  "observation": {
+    "sourceTimeVerified": true,
+    "fresh": true,
+    "mediaOrigin": "recording",
+    "capturedAt": 1791683473361
+  },
+  "recipient": {
+    "id": "<disposable-check>",
+    "state": "complete",
+    "result": "visible",
+    "observedAt": 1791683473361,
+    "completedAt": 1791683492248,
+    "provider": "ring-snapshot-owner-review",
+    "noImage": true,
+    "noCameraIdentifiers": true,
+    "noOwnerNote": true
+  },
+  "revocationStatus": 410,
+  "ok": true,
+  "finishedAt": "2026-10-11T01:51:32.257Z"
+}

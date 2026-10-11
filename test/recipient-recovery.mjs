@@ -153,18 +153,23 @@ try {
   );
   const p2 = makePass();
   const lost = await context.newPage();
-  let dropped = false;
+  let dropped = false, recoveryThrottled = false;
   await lost.route(`**/api/p/${p2.token}/checks`, async (route) => {
     if (route.request().method() === "POST" && !dropped) {
       dropped = true;
       await route.fetch();
       await route.abort("failed");
+    } else if (route.request().method() === "POST" && !recoveryThrottled) {
+      recoveryThrottled = true;
+      await route.fulfill({ status: 429, contentType: "application/json", body: JSON.stringify({ error: "Too many requests. Wait one minute and try again.", code: "invalid_request" }) });
     } else await route.continue();
   });
   await lost.goto(`${base}/p/${p2.token}`);
   await lost
     .getByRole("button", { name: "Request a check", exact: true })
     .click();
+  await lost.getByRole("alert").filter({ hasText: "Too many requests" }).waitFor();
+  assert.ok(await lost.evaluate(token => JSON.parse(sessionStorage.getItem(`aperture-check:${token}`))?.requestKey, p2.token), "generic throttling must retain an ambiguous accepted request key");
   await waitHeading(lost, "Waiting for the owner’s view.");
   assert.equal(remaining(p2), 0);
   assert.equal(
@@ -174,7 +179,7 @@ try {
     1,
   );
   results.push(
-    "lost accepted POST response retries persisted request key idempotently",
+    "lost accepted POST response survives generic recovery throttling and recovers idempotently",
   );
   await lost.close();
   const p3 = makePass();
@@ -232,6 +237,78 @@ try {
     "known expiry clears the rendered answer locally even when revalidation is offline",
   );
   await expiry.close();
+  // Another holder can spend a check after this tab's access read. A rejected
+  // POST must not become an automatic future check once their cooldown ends.
+  const makeRacePass = () => store.createPass(user.id, {
+    cameraId: camera.id, label: "Rejection race", minutes: 30,
+    budget: 3, cooldown: 60, consent: true,
+  });
+  const rejected = makeRacePass();
+  const race = await context.newPage();
+  let rejectedPosts = 0;
+  await race.goto(`${base}/p/${rejected.token}`);
+  await race.getByRole("button", { name: "Request a check", exact: true }).waitFor();
+  const otherJob = store.request(rejected.token, { requestKey: "another-holder-request" });
+  store.complete(user.id, otherJob.id, { result: "cannot_verify", observedAt: Date.now(), confirmed: true });
+  race.on("request", req => {
+    if (req.method() === "POST" && req.url().endsWith(`/api/p/${rejected.token}/checks`)) rejectedPosts++;
+  });
+  await race.getByRole("button", { name: "Request a check", exact: true }).click();
+  await race.waitForFunction(token => sessionStorage.getItem(`aperture-check:${token}`) === null, rejected.token, { timeout: 10000 });
+  assert.equal(rejectedPosts, 1);
+  store.db.prepare("UPDATE passes SET last_check=? WHERE id=?").run(Date.now() - 61000, rejected.id);
+  await race.waitForFunction(() => [...document.querySelectorAll("button")].some(button => button.textContent.includes("Request a check") && !button.disabled), null, { timeout: 15000 });
+  assert.equal(rejectedPosts, 1, "a rejected check must not dispatch automatically after cooldown");
+  assert.equal(remaining(rejected), 2);
+  await race.getByRole("button", { name: "Request a check", exact: true }).click();
+  await waitHeading(race, "Waiting for the owner’s view.");
+  assert.equal(remaining(rejected), 1);
+  results.push("cooldown race discards rejected key; future checks require another explicit click");
+  await race.close();
+
+  const recoveredRejection = makeRacePass();
+  store.request(recoveredRejection.token, { requestKey: "other-holder-recovery" });
+  const recovering = await context.newPage();
+  await recovering.addInitScript(({ token }) => {
+    sessionStorage.setItem(`aperture-check:${token}`, JSON.stringify({ requestKey: "rejected-before-reload" }));
+  }, { token: recoveredRejection.token });
+  let recoveryPosts = 0;
+  recovering.on("request", req => {
+    if (req.method() === "POST" && req.url().endsWith(`/api/p/${recoveredRejection.token}/checks`)) recoveryPosts++;
+  });
+  await recovering.goto(`${base}/p/${recoveredRejection.token}`);
+  await recovering.getByRole("alert").filter({ hasText: "Wait for the cooldown" }).waitFor();
+  await recovering.getByRole("button", { name: /^Next check in/ }).waitFor({ timeout: 1500 });
+  assert.equal(await recovering.getByRole("heading", { name: "Connection interrupted.", exact: true }).count(), 0);
+  assert.equal(await recovering.getByText("We cannot confirm access right now. Your saved check will be recovered after a successful connection.", { exact: true }).count(), 0);
+  assert.equal(await recovering.evaluate(token => sessionStorage.getItem(`aperture-check:${token}`), recoveredRejection.token), null);
+  store.db.prepare("UPDATE passes SET last_check=? WHERE id=?").run(Date.now() - 61000, recoveredRejection.id);
+  await recovering.waitForFunction(() => [...document.querySelectorAll("button")].some(button => button.textContent.includes("Request a check") && !button.disabled), null, { timeout: 15000 });
+  assert.equal(recoveryPosts, 1);
+  assert.equal(remaining(recoveredRejection), 2);
+  results.push("reloading an unaccepted key clears it after a definitive rejection instead of queueing a check");
+  await recovering.close();
+  // A fresh request rejected by a generic throttle is unaccepted, not recoverable.
+  const freshPass = makeRacePass();
+  const fresh = await context.newPage();
+  let freshPosts = 0;
+  fresh.on("request", req => {
+    if (req.method() === "POST" && req.url().endsWith(`/api/p/${freshPass.token}/checks`)) freshPosts++;
+  });
+  await fresh.route(`**/api/p/${freshPass.token}/checks`, route => route.fulfill({ status: 429, contentType: "application/json", body: JSON.stringify({ error: "Generic throttle for fresh request", code: "invalid_request" }) }));
+  await fresh.goto(`${base}/p/${freshPass.token}`);
+  await fresh.getByRole("button", { name: "Request a check", exact: true }).click();
+  await fresh.waitForFunction(token => sessionStorage.getItem(`aperture-check:${token}`) === null, freshPass.token);
+  await fresh.waitForFunction(() => [...document.querySelectorAll("button")].some(button => button.textContent.includes("Request a check") && !button.disabled));
+  assert.equal(freshPosts, 1);
+  assert.equal(remaining(freshPass), 3);
+  await fresh.unroute(`**/api/p/${freshPass.token}/checks`);
+  await fresh.getByRole("button", { name: "Request a check", exact: true }).click();
+  await waitHeading(fresh, "Waiting for the owner’s view.");
+  assert.equal(freshPosts, 2);
+  assert.equal(remaining(freshPass), 2);
+  results.push("fresh generic throttle discards unaccepted key; only explicit retry creates one job");
+  await fresh.close();
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ passed: true, results }));
 } finally {

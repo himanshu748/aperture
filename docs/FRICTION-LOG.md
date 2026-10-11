@@ -50,6 +50,12 @@ Observed during the 28–29 September 2026 implementation and official Ring Deve
 
 **Suggestion:** Publish a Playground capability table covering discovery, live view, recorded images, and supported event types. Add a reproducible timestamped-image fixture or a clear “live view only” indicator, with a short diagnostic guide for `MEDIA_NOT_FOUND` and any documented readiness delay.
 
+## Follow-up — 11 October 2026
+
+A fresh official Playground check through Aperture's real adapter completed discovery (HTTP 200), image-request redirect (HTTP 303) and image download (HTTP 200). The adapter accepted the Ring source timestamp `2026-10-11T01:42:56.445Z`, reported recording origin and marked the image fresh. The authenticated redirect used the exact host `download-eu-south-2.prod.phoenix.devices.amazon.dev`, added explicitly to the allowed download hosts.
+
+This successful retrieval narrows issue 3: the earlier `MEDIA_NOT_FOUND` results describe those tested windows and do not establish a permanent simulator limitation. The cause of their different availability remains unproven. That first check covered only the adapter. A subsequent disposable local HTTP run completed official reference and observation downloads, operator image review by Codex, a finite `visible` recipient response with an exact six-field privacy allowlist, and HTTP 410 after revocation. It exercised real app routes and native Ring network requests, not mocked transport. Hosted/browser validation and a new video were not part of either run. Neither run changes issue 2's unknown-time browser-frame boundary or establishes physical-device behavior.
+
 ## Reference implementation
 
 Source and reproduction instructions: https://github.com/himanshu748/aperture

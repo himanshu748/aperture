@@ -67,6 +67,7 @@ class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public code?: string,
   ) {
     super(message);
   }
@@ -80,7 +81,7 @@ async function api(path: string, method = "GET", body?: unknown) {
     credentials: "same-origin",
   });
   const data = await res.json();
-  if (!res.ok) throw new ApiError(data.error || "Request failed.", res.status);
+  if (!res.ok) throw new ApiError(data.error || "Request failed.", res.status, data.code);
   return data;
 }
 function Icon({ name, size = 20 }: { name: string; size?: number }) {
@@ -1722,9 +1723,9 @@ function Recipient({ token }: { token: string }) {
       // Keep identifiers and the pending state during a temporary network/server failure.
       // Any previously completed answer stays hidden until a fresh authorized read succeeds.
       setVerified(false);
-      setError(
-        "Connection interrupted. Your check is saved in this tab; we’ll retry automatically.",
-      );
+      setError(e instanceof ApiError && [409, 429].includes(e.status)
+        ? e.message
+        : "Connection interrupted. Your check is saved in this tab; we’ll retry automatically.");
     }
   };
   const load = async () => {
@@ -1741,14 +1742,28 @@ function Recipient({ token }: { token: string }) {
       }
       const saved = reference.current;
       let nextJob = null;
+      let recoveryError = "";
       if (saved?.jobId) {
         nextJob = await api(`/p/${token}/checks/${saved.jobId}`);
       } else if (saved?.requestKey) {
         // A response may have been lost after the server accepted the request.
         // Reusing its key recovers that check without another budget debit.
-        nextJob = await api(`/p/${token}/checks`, "POST", {
-          requestKey: saved.requestKey,
-        });
+        try {
+          nextJob = await api(`/p/${token}/checks`, "POST", {
+            requestKey: saved.requestKey,
+          });
+        } catch (e) {
+          // Store-level rejections happen after idempotency lookup, proving this key
+          // was not accepted. A generic HTTP throttle cannot resolve a lost response
+          // and must retain its key for recovery.
+          if (current !== generation.current) return;
+          if (e instanceof ApiError &&
+              ((e.status === 429 && ["cooldown", "exhausted"].includes(e.code || "")) ||
+               (e.status === 409 && e.code === "pending"))) {
+            persist(null);
+            recoveryError = e.message;
+          } else throw e;
+        }
       }
       if (current !== generation.current) return;
       if (Date.now() >= nextData.expires) {
@@ -1761,7 +1776,7 @@ function Recipient({ token }: { token: string }) {
       setJob(nextJob);
       setVerified(true);
       setClosed(false);
-      setError("");
+      setError(recoveryError);
     } catch (e) {
       if (current === generation.current) failed(e);
     } finally {
@@ -1792,6 +1807,7 @@ function Recipient({ token }: { token: string }) {
     setBusy(true);
     setError("");
     const current = ++generation.current;
+    const previous = reference.current;
     const saved =
       !reference.current ||
       job?.state === "complete" ||
@@ -1813,7 +1829,16 @@ function Recipient({ token }: { token: string }) {
       setJob(j);
       setVerified(true);
     } catch (e) {
-      if (current === generation.current) failed(e);
+      if (current === generation.current) {
+        // Retain the earlier accepted check, but discard a definitively rejected
+        // request key. Network failures still recover with the same key.
+        if (e instanceof ApiError &&
+            ((saved !== previous && [409, 429].includes(e.status)) ||
+             (e.status === 429 && ["cooldown", "exhausted"].includes(e.code || "")) ||
+             (e.status === 409 && e.code === "pending")))
+          persist(previous?.jobId ? previous : null);
+        failed(e);
+      }
     } finally {
       requesting.current = false;
       setBusy(false);

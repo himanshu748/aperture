@@ -4,7 +4,7 @@
 
 A private workspace for giving someone a short-lived permission to ask one approved question about an object. The recipient receives a timestamped finite answer. They never receive the owner's reference photo or private observation evidence.
 
-**Every answer is approved by the owner.** The optional Ring source adapter calls the official device and snapshot APIs when connected with an authorized Playground token. Without a token, uploaded references and manual observation remain available. Automated recognition is not implemented. Official Playground live video played inside the private owner workspace on 28 September 2026. Archived snapshot retrieval returned `MEDIA_NOT_FOUND` for those events. Browser-saved live frames have no Ring capture timestamp and can release only **Cannot verify**. No sample data is inserted on startup.
+**Every answer is approved by the owner.** The optional Ring source adapter calls the official device and snapshot APIs when connected with an authorized Playground token. Without a token, uploaded references and manual observation remain available. Automated recognition is not implemented. Official Playground live video played inside the private owner workspace on 28 September 2026. Archived snapshot retrieval returned `MEDIA_NOT_FOUND` for those events. On 11 October, a separate local HTTP run downloaded official timestamped reference and observation images, released a reviewed `visible` answer and verified revocation. Codex performed the operator image review; this was not a hosted/browser walkthrough. Browser-saved live frames have no Ring capture timestamp and can release only **Cannot verify**. No sample data is inserted on startup.
 
 [Watch the 109-second Ring demo](https://www.youtube.com/watch?v=WLnjM5z7IPQ). The video uses edited stills from the verified official Playground flow, with Deepgram Aura 2 Thalia narration and English captions. The demonstrated answer is **Cannot verify** because Ring capture time is unavailable. The final reviewed suite passes 38 tests. Read the [Ring integration friction log](docs/FRICTION-LOG.md) for observed errors and feature requests.
 
@@ -106,7 +106,7 @@ It covers pending/completed reloads with a one-check budget, no cached answer be
 
 ## Automated recognition boundary
 
-The Ring adapter retrieves authorized images for human review. Automated recognition remains unimplemented; it would require a constrained model and evaluation of ambiguity and occlusion before use. Permission checks surround asynchronous image retrieval and final approval. The snapshot path still needs a verified image from a real Ring device or the official simulator. The live-frame reference and conservative recipient-review workflow was exercised end to end with the official Playground on 29 September. The [public demonstration video](https://www.youtube.com/watch?v=WLnjM5z7IPQ) shows that conservative flow using edited browser stills.
+The Ring adapter retrieves authorized images for human review. Automated recognition remains unimplemented; it would require a constrained model and evaluation of ambiguity and occlusion before use. Permission checks surround asynchronous image retrieval and final approval. On 11 October, the real local HTTP routes and Ring adapter completed timestamped reference retrieval, a separate check snapshot, operator image review by Codex, recipient release and revocation against the official Playground. The app did not automate recognition. Hosted/browser validation of this snapshot-backed flow remains open. The live-frame reference and conservative recipient-review workflow was exercised end to end with the official Playground on 29 September. The [public demonstration video](https://www.youtube.com/watch?v=WLnjM5z7IPQ) shows that conservative flow using edited browser stills.
 
 ## Interactive permission illustration
 
@@ -136,7 +136,7 @@ Reference requests begin at the current connection verification time (with a 24-
 
 The API checks the pass after the asynchronous download and again during final release. Disconnection cancels in-flight connection/image retention and invalidates temporary image access. Temporary preview images expire after five minutes; images used in a reference or completed private observation remain until the reference is deleted. The existing manual workflow remains usable.
 
-See [RING-DEMO.md](RING-DEMO.md) for the actual runtime path, public demonstration, primary documentation and unresolved archived-media verification. New automated provider tests use synthetic contract responses and are explicitly not official Ring simulator evidence:
+See [RING-DEMO.md](RING-DEMO.md) for the actual runtime path, public demonstration, primary documentation, the 11 October provider and local HTTP receipts, and remaining hosted/browser verification. New automated provider tests use synthetic contract responses and are explicitly not official Ring simulator evidence:
 
 ```sh
 node --test test/ring.test.mjs
@@ -174,3 +174,19 @@ Live check sessions end no later than the pass expiry, two-minute check deadline
 This path demonstrates a useful privacy boundary, not verified current-world visibility. For a definite Ring-backed answer, use the existing snapshot path with a recent Ring capture timestamp. Personal direct observations remain a separately labeled manual workflow and should never be used to relabel an unverified video timestamp.
 
 The official Package live-frame workflow was verified on 29 September, 21:14–21:18 IST: reference creation, a 15-minute/two-check pass, recipient request, owner review, **Cannot verify** with null source time and separate approval time, second pending check, revocation and Ring disconnect. The recipient view was another tab in the same browser; separate-account isolation is covered by API tests. This establishes the simulator refusal path, not physical-device behavior, archived-image availability or real-world current visibility. See `RING-DEMO.md` for the exact evidence boundary.
+
+### Official timestamped image retrieval — 11 October 2026
+
+[Sanitized provider receipt](docs/evidence/aperture-oct11-official-ring.json).
+
+A fresh authorized official Playground check used Aperture's real `RingSessions` adapter with the native network transport. Device discovery returned HTTP 200 with one camera; the image request returned HTTP 303; the redirected image download returned HTTP 200. The adapter decoded the image and reported `sourceTimeVerified: true`, `fresh: true`, `mediaOrigin: recording` and a Ring capture timestamp of `2026-10-11T01:42:56.445Z`. These are provider/adapter results, not synthetic contract responses.
+
+The authenticated redirect used `download-eu-south-2.prod.phoenix.devices.amazon.dev`, allowed as an exact `RING_MEDIA_HOSTS` entry alongside the earlier observed `download-ap-northeast-1.prod.phoenix.devices.amazon.dev`. See the [acceptance checklist](docs/RING-ACCEPTANCE.md) for configuration and the remaining flow. This run did not create a reference or pass, approve an observation, or release a recipient answer. It establishes official timestamped image retrieval, not physical-device behavior or present-day parcel visibility. Earlier `MEDIA_NOT_FOUND` receipts and the public conservative live-frame demonstration remain valid historical observations.
+
+### Official local HTTP recipient flow — 11 October 2026
+
+[Sanitized local HTTP flow receipt](docs/evidence/aperture-oct11-official-flow.json).
+
+A subsequent disposable local workspace exercised the actual HTTP routes and Ring adapter with native network requests, without mocked provider responses. Official discovery returned 200; both the reference and check image requests followed 303 redirects to successful 200 downloads. The adapter verified both recording timestamps and marked both images fresh. Codex visually reviewed the private images as the operator before approving `visible`; recognition was not performed automatically by the app.
+
+The recipient response contained exactly `id`, `state`, `result`, `observedAt`, `completedAt` and `provider`, with `provider: ring-snapshot-owner-review` and observation time `2026-10-11T01:51:13.361Z`. It contained no image, camera identifier or owner note. Revoking the pass made the same recipient check return HTTP 410. The run finished at `2026-10-11T01:51:32.257Z`. This establishes the full local HTTP snapshot-backed flow against the official simulator, not a hosted/browser walkthrough, new video, physical Ring device test or real parcel handoff.
