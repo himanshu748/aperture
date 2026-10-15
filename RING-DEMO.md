@@ -1,3 +1,5 @@
+> 15 October: use [the live capture runner and 2:45 shot list](docs/LIVE-DEMO.md) for replacement moving app footage. The public video below contains edited stills. A current token and fresh recorded media are required; no new live run is claimed.
+
 # Aperture Ring demonstration and evidence
 
 Update on 11 October 2026: a separate local HTTP run completed official timestamped reference and check downloads, operator image review by Codex, a finite `visible` recipient response and revocation. It used the real app routes and Ring adapter without mocked provider responses. It was not a hosted/browser walkthrough or a new video; the September demonstration below remains the conservative live-frame recording.

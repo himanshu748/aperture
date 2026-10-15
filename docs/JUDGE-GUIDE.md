@@ -2,6 +2,10 @@
 
 Aperture lets a person waiting for a parcel ask a bounded question about its approved location without receiving the owner's camera feed. The owner approves every answer.
 
+## Current live recording path
+
+Use [the environment-only capture runner and 2:45 live shot list](LIVE-DEMO.md). Official snapshot `X-Media-Timestamp` supports a fresh owner-reviewed Visible/Not visible answer. Today's live run needs a current authorized token; the existing stills video and 11 October HTTP receipts are historical. The runner never substitutes test fixtures or chooses an answer.
+
 ## Official Ring Playground walkthrough
 
 Use Node 22.13 or newer. The authenticated Ring redirects observed in the September and October runs used the two exact download hosts below. Install, build and start locally with those destinations allowed:

@@ -6,7 +6,15 @@ A private workspace for giving someone a short-lived permission to ask one appro
 
 **Every answer is approved by the owner.** The optional Ring source adapter calls the official device and snapshot APIs when connected with an authorized Playground token. Without a token, uploaded references and manual observation remain available. Automated recognition is not implemented. Official Playground live video played inside the private owner workspace on 28 September 2026. Archived snapshot retrieval returned `MEDIA_NOT_FOUND` for those events. On 11 October, a separate local HTTP run downloaded official timestamped reference and observation images, released a reviewed `visible` answer and verified revocation. Codex performed the operator image review; this was not a hosted/browser walkthrough. Browser-saved live frames have no Ring capture timestamp and can release only **Cannot verify**. No sample data is inserted on startup.
 
-[Watch the 109-second Ring demo](https://www.youtube.com/watch?v=WLnjM5z7IPQ). The video uses edited stills from the verified official Playground flow, with Deepgram Aura 2 Thalia narration and English captions. The demonstrated answer is **Cannot verify** because Ring capture time is unavailable. The final reviewed suite passes 38 tests. Read the [Ring integration friction log](docs/FRICTION-LOG.md) for observed errors and feature requests.
+## Live Ring judging status (15 October 2026)
+
+The official snapshot API supplies **`X-Media-Timestamp`**, the captured frame's epoch milliseconds, and `X-Media-Origin`. `server/ring.mjs` reads those fields from the image response, preserves capture time separately from download time and checks the authorized request window. A verified, fresh snapshot can support an owner-approved **Visible (Yes)** or **Not visible (No)** answer. [Official API: Image Snapshots](https://developer.amazon.com/docs/ring/api-documentation.html#image-snapshots)
+
+Use the [live recording runner and 2:45 shot list](docs/LIVE-DEMO.md). It uses native fetch against Ring, records live application pages and requires the operator to review and approve the actual image. Credentials come from environment variables; no token is recorded or logged. Missing/future/stale timestamps still require **Cannot verify**. An owner's recent approval cannot turn a timestamp-free browser frame into a verified Ring capture.
+
+**Today's live run is blocked by a current authorized Playground token and fresh recorded media.** No Ring credentials were available in this process. The 11 October official-provider and complete local HTTP receipts below are historical evidence; they do not establish today's browser run. The [existing 109-second video](https://www.youtube.com/watch?v=WLnjM5z7IPQ) uses edited stills and demonstrates Cannot verify. A replacement live video remains to be recorded by the owner; it has not been uploaded.
+
+[MIT license](LICENSE) · [Observed friction](FRICTION.md) · [Product feedback draft](PRODUCT-FEEDBACK.md)
 
 ## Run locally
 
