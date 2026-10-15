@@ -11,7 +11,8 @@
     "start": "node server/index.mjs",
     "build": "tsc --noEmit && vite build",
     "test": "node --test test/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "demo:ring": "node scripts/record-live-ring.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

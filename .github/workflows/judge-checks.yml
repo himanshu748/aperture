@@ -21,9 +21,11 @@ jobs:
           npm ci
           npm test
           npm run build
+          node --check scripts/record-live-ring.mjs
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium --only-shell
       - name: Verify production UI using isolated fictional fixtures
         run: |
           node test/recipient-recovery.mjs
           node test/ring-browser.mjs
+          APERTURE_REVIEW_RACE=1 node test/ring-browser.mjs
