@@ -44,7 +44,7 @@ The owner page starts at Ring source with real discovery already connected. Crea
 
 Press Enter in the runner's terminal to finish; it also stops after 175 seconds. Owner and recipient WebM tracks plus `receipt.json` are written under ignored `.impeccable/review/live-ring/<UTC>/`. Use actual moving app footage from these tracks or a desktop screen recorder. No still-image reconstruction. The script saves no screenshots, HAR, traces, bearer URLs or request bodies. The videos contain private images and pass-link UI; review/redact access links before sharing, without hiding runtime provenance or failures. Do not upload raw footage automatically.
 
-The sanitized receipt contains only operation/status, frame provenance/time and recipient outcome/time. `complete_flow_verified` requires at least two retrieved frames, a verified fresh last frame and a definite Ring-review recipient result. It does not grade the recording, prove physical hardware or replace inspection. Runtime failure writes an incomplete receipt and never falls back to fixture transport. Repeated identical blocking failures: stop after two, record the cause and owner action in FRICTION.md.
+The sanitized receipt contains only operation/status, frame provenance/time and recipient outcome/time. `complete_flow_verified` requires a retrieved reference, a verified fresh observation and a definite Ring-review recipient result with that exact capture time. It does not grade the recording, prove physical hardware or replace inspection. Runtime failure writes an incomplete receipt and never falls back to fixture transport. Repeated identical blocking failures: stop after two, record the cause and owner action in FRICTION.md.
 
 ## Errors
 

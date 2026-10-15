@@ -46,7 +46,7 @@ try {
       const path = new URL(response.url()).pathname;
       if (response.ok() && (path === '/api/ring/reference' || /\/ring-snapshot$/.test(path))) {
         const frame = await response.json();
-        receipt.frames.push({ capturedAt: frame.capturedAt, downloadedAt: frame.downloadedAt,
+        receipt.frames.push({ operation: path === '/api/ring/reference' ? 'reference' : 'observation', capturedAt: frame.capturedAt, downloadedAt: frame.downloadedAt,
           sourceTimeVerified: frame.sourceTimeVerified, fresh: frame.fresh, mediaOrigin: frame.mediaOrigin });
       }
     } catch { /* Closing the browser may cancel a response; no result is inferred. */ }
@@ -80,8 +80,10 @@ try {
   prompt.close();
   await ownerContext.close(); ownerContext = null;
   await recipientContext.close(); recipientContext = null;
-  receipt.complete_flow_verified = receipt.frames.length >= 2 && receipt.frames.at(-1)?.sourceTimeVerified === true && receipt.frames.at(-1)?.fresh === true &&
-    receipt.recipient_results.some(r => ['visible', 'not_visible'].includes(r.result) && r.provider === 'ring-snapshot-owner-review');
+  receipt.complete_flow_verified = receipt.frames.some(f => f.operation === 'reference') &&
+    receipt.frames.some(f => f.operation === 'observation' && f.sourceTimeVerified === true && f.fresh === true &&
+      receipt.recipient_results.some(r => ['visible', 'not_visible'].includes(r.result) &&
+        r.provider === 'ring-snapshot-owner-review' && r.observedAt === f.capturedAt));
   void passWatch;
 } catch (error) {
   receipt.failure = 'Live run did not complete. Check token authorization, fresh recorded media, exact download-host allowlist and browser prerequisites; no result was substituted.';
